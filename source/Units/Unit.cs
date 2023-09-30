@@ -54,6 +54,7 @@ namespace SteelCustom.Units
         
         public virtual void Dispose()
         {
+            GameController.Instance.UnitsController.RemoveUnit(this);
             ClearDrawnPath();
         }
 
@@ -87,7 +88,7 @@ namespace SteelCustom.Units
             if (!newPath.Any())
                 return false;
 
-            _currentPathTileIndex = _currentPath.Any() ? 1 : 0;
+            _currentPathTileIndex = _currentPath.Any() && newPath.Count > 1 ? 1 : 0;
             _currentPath = newPath;
 
             _reservedTile.ClearOnReservingUnit();
@@ -96,7 +97,7 @@ namespace SteelCustom.Units
 
             DrawPath();
 
-            Log.LogInfo($"Unit move path len {_currentPath.Count} ({string.Join(", ", _currentPath.Select(t => t.ToString()))})");
+            Log.LogInfo($"Unit move path len {_currentPath.Count}");
 
             OnMovementStarted();
 
@@ -116,6 +117,16 @@ namespace SteelCustom.Units
         {
             if (!_currentPath.Any())
                 return;
+
+            if (_currentPath[_currentPathTileIndex].IsOccupiedAndBlocked)
+            {
+                if (!MoveTo(_currentPath.Last()))
+                {
+                    MoveTo(_onTile);
+                }
+                
+                return;
+            }
 
             var map = GameController.Instance.Map;
             var targetPosition = (Vector3)map.CoordsToPosition(_currentPath[_currentPathTileIndex].X, _currentPath[_currentPathTileIndex].Y) + new Vector3(0, 0, 0.3f);
@@ -172,7 +183,7 @@ namespace SteelCustom.Units
             {
                 Entity entity = new Entity("Path", map.Entity);
                 entity.AddComponent<SpriteRenderer>().Sprite = ResourcesManager.GetImage("path_point.png");
-                entity.Transformation.Position = (Vector3)map.CoordsToPosition(tile.X, tile.Y) + new Vector3(0, 0, 0.1f);
+                entity.Transformation.Position = (Vector3)map.CoordsToPosition(tile.X, tile.Y) + new Vector3(0, 0, 0.15f);
                 
                 _drawnPath.Add(entity);
             }

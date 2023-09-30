@@ -1,4 +1,5 @@
-﻿using Steel;
+﻿using System.Collections.Generic;
+using Steel;
 using SteelCustom.Units;
 
 namespace SteelCustom.MapSystem
@@ -12,8 +13,9 @@ namespace SteelCustom.MapSystem
         public Unit OnReservingUnit { get; private set; }
 
         public bool IsOccupied => OnObject != null && !OnObject.Entity.IsDestroyed();
+        public bool IsOccupiedAndBlocked => IsOccupied && OnObject.IsBlocking;
         public bool IsReserved => OnReservingUnit != null && !OnReservingUnit.Entity.IsDestroyed();
-        public bool Passable => (!IsOccupied || !OnObject.IsBlocking) && !IsReserved;
+        public bool Passable => !IsOccupiedAndBlocked && !IsReserved;
 
         #region Path finder
         

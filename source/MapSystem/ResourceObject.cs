@@ -33,7 +33,7 @@ namespace SteelCustom.MapSystem
             return true;
         }
 
-        protected void OnResourceDepleted()
+        public void Destroy()
         {
             foreach (var tile in _onTiles)
             {
@@ -41,6 +41,11 @@ namespace SteelCustom.MapSystem
             }
             
             Entity.Destroy();
+        }
+
+        protected void OnResourceDepleted()
+        {
+            Destroy();
         }
     }
 }

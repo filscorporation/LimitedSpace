@@ -9,7 +9,9 @@ namespace SteelCustom.Buildings
 {
     public abstract class Building : MapObject
     {
+        private bool _isDraft;
         protected abstract string SpritePath { get; }
+        public abstract BuildingType Type { get; }
 
         public virtual void Init()
         {
@@ -36,6 +38,12 @@ namespace SteelCustom.Buildings
             }
         }
 
+        public void Destroy()
+        {
+            Entity.Destroy();
+            Dispose();
+        }
+
         public T SpawnUnit<T>() where T : Unit, new()
         {
             var tile = GameController.Instance.Map.GetPassableTilesAround(this).FirstOrDefault();
@@ -48,6 +56,16 @@ namespace SteelCustom.Buildings
         public virtual bool IsStorage(ResourceType resourceType)
         {
             return false;
+        }
+
+        public void SetIsDraft(bool isDraft)
+        {
+            _isDraft = isDraft;
+        }
+
+        public float GetZ()
+        {
+            return (IsBlocking ? 0.5f : 0.1f) + (_isDraft ? 0.3f : 0.0f);
         }
     }
 }

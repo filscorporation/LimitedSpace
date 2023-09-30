@@ -67,6 +67,7 @@
     <Compile Include="PlayerSystem\Upgrades\WheelbarrowUpgrade.cs" />
     <Compile Include="GameState.cs" />
     <Compile Include="SelectableObject.cs" />
+    <Compile Include="UIElements\UIBuilderController.cs" />
     <Compile Include="UIElements\UIController.cs" />
     <Compile Include="UIElements\UIResourcesController.cs" />
     <Compile Include="Units\Unit.cs" />

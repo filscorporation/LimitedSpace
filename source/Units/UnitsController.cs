@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Steel;
 using SteelCustom.Buildings;
 using SteelCustom.MapSystem;
@@ -8,11 +9,22 @@ namespace SteelCustom.Units
     public class UnitsController : ScriptComponent
     {
         public Unit HoveredUnit { get; set; }
+        public List<Unit> Units => new List<Unit>(_units);
+
+        private List<Unit> _units = new List<Unit>();
 
         public override void OnUpdate()
         {
             if (Input.IsMouseJustPressed(MouseCodes.ButtonRight))
                 TryMoveSelectedUnits();
+
+            if (Input.IsMouseJustPressed(MouseCodes.ButtonLeft))
+            {
+                if (HoveredUnit != null)
+                    GameController.Instance.Player.Select(HoveredUnit);
+                else
+                    GameController.Instance.Player.DeselectAll();
+            }
         }
 
         public void Init()
@@ -26,8 +38,15 @@ namespace SteelCustom.Units
             var unit = entity.AddComponent<T>();
             unit.Transformation.Position = (Vector3)GameController.Instance.Map.CoordsToPosition(tile.X, tile.Y) + new Vector3(0, 0, 0.3f);
             unit.Init(tile);
+            
+            _units.Add(unit);
 
             return unit;
+        }
+
+        public void RemoveUnit(Unit unit)
+        {
+            _units.Remove(unit);
         }
 
         private void TryMoveSelectedUnits()
@@ -45,7 +64,7 @@ namespace SteelCustom.Units
             
             ResourceObject targetResourceObject = null;
             Building targetBuilding = null;
-            if (tile != null && tile.IsOccupied)
+            if (tile != null && tile.IsOccupiedAndBlocked)
             {
                 if (tile.OnObject is ResourceObject resourceObject)
                 {

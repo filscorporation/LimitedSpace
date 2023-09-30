@@ -163,6 +163,16 @@ namespace SteelCustom
                 Time.TimeScale /= 2;
             if (Input.IsKeyJustPressed(KeyCode.Equal)) // +
                 Time.TimeScale *= 2;
+
+            if (Input.IsKeyJustPressed(KeyCode.X))
+            {
+                var tile = Map.GetTileAt(Camera.Main.ScreenToWorldPoint(Input.MousePosition));
+                if (tile != null)
+                {
+                    if (tile.OnObject is ResourceObject resourceObject)
+                        resourceObject.Destroy();
+                }
+            }
         }
     }
 }
