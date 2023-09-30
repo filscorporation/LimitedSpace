@@ -6,6 +6,5 @@
         Tutorial,
         Game,
         Win,
-        Lose,
     }
 }

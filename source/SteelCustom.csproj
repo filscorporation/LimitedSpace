@@ -41,8 +41,36 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Buildings\BuilderController.cs" />
+    <Compile Include="Buildings\Building.cs" />
+    <Compile Include="Buildings\BuildingType.cs" />
+    <Compile Include="Buildings\Farm.cs" />
+    <Compile Include="Buildings\House.cs" />
+    <Compile Include="Buildings\TownCenter.cs" />
+    <Compile Include="Buildings\University.cs" />
+    <Compile Include="Buildings\Wonder.cs" />
+    <Compile Include="CameraController.cs" />
     <Compile Include="GameController.cs" />
+    <Compile Include="MapSystem\IMapElement.cs" />
+    <Compile Include="MapSystem\Map.cs" />
+    <Compile Include="MapSystem\MapObject.cs" />
+    <Compile Include="MapSystem\PathFinder.cs" />
+    <Compile Include="MapSystem\ResourceObject.cs" />
+    <Compile Include="MapSystem\Tile.cs" />
+    <Compile Include="MapSystem\Tree.cs" />
+    <Compile Include="PlayerSystem\Player.cs" />
+    <Compile Include="PlayerSystem\Resources\PlayerResources.cs" />
+    <Compile Include="PlayerSystem\Resources\ResourceCost.cs" />
+    <Compile Include="PlayerSystem\Resources\ResourceType.cs" />
+    <Compile Include="PlayerSystem\Upgrades\PlayerUpgrades.cs" />
+    <Compile Include="PlayerSystem\Upgrades\Upgrade.cs" />
+    <Compile Include="PlayerSystem\Upgrades\WheelbarrowUpgrade.cs" />
     <Compile Include="GameState.cs" />
+    <Compile Include="UIElements\UIController.cs" />
+    <Compile Include="UIElements\UIResourcesController.cs" />
+    <Compile Include="Units\Unit.cs" />
+    <Compile Include="Units\UnitsController.cs" />
+    <Compile Include="Units\Worker.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
