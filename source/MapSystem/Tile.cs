@@ -11,8 +11,8 @@ namespace SteelCustom.MapSystem
         public MapObject OnObject { get; private set; }
         public Unit OnReservingUnit { get; private set; }
 
-        public bool IsOccupied => OnObject != null;
-        public bool IsReserved => OnReservingUnit != null;
+        public bool IsOccupied => OnObject != null && !OnObject.Entity.IsDestroyed();
+        public bool IsReserved => OnReservingUnit != null && !OnReservingUnit.Entity.IsDestroyed();
         public bool Passable => (!IsOccupied || !OnObject.IsBlocking) && !IsReserved;
 
         #region Path finder
@@ -35,18 +35,33 @@ namespace SteelCustom.MapSystem
 
         public void SetOnObject(MapObject onObject)
         {
-            if (OnObject != null)
+            if (IsOccupied)
                 Log.LogError($"Tile ({X}, {Y}) is already occupied with {OnObject}");
 
             OnObject = onObject;
         }
 
+        public void ClearOnObject()
+        {
+            OnObject = null;
+        }
+
         public void SetOnReservingUnit(Unit unit)
         {
-            if (OnReservingUnit != null)
+            if (IsReserved)
                 Log.LogError($"Tile ({X}, {Y}) is already reserved by {OnReservingUnit}");
 
             OnReservingUnit = unit;
+        }
+
+        public void ClearOnReservingUnit()
+        {
+            OnReservingUnit = null;
+        }
+
+        public override string ToString()
+        {
+            return $"({X}, {Y})";
         }
     }
 }

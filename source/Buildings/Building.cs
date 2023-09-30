@@ -1,6 +1,8 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Steel;
 using SteelCustom.MapSystem;
+using SteelCustom.PlayerSystem.Resources;
 using SteelCustom.Units;
 
 namespace SteelCustom.Buildings
@@ -17,12 +19,21 @@ namespace SteelCustom.Buildings
         
         public virtual void Dispose()
         {
-            
+            foreach (var tile in _onTiles)
+            {
+                tile.ClearOnObject();
+            }
         }
 
-        public void Place(Tile bottomLeftTile)
+        public void Place(Tile bottomLeftTile, List<Tile> allTiles)
         {
             OnBottomLeftTile = bottomLeftTile;
+            _onTiles = allTiles;
+            
+            foreach (var tile in _onTiles)
+            {
+                tile.SetOnObject(this);
+            }
         }
 
         public T SpawnUnit<T>() where T : Unit, new()
@@ -32,6 +43,11 @@ namespace SteelCustom.Buildings
                 return null;
 
             return GameController.Instance.UnitsController.SpawnUnit<T>(tile);
+        }
+
+        public virtual bool IsStorage(ResourceType resourceType)
+        {
+            return false;
         }
     }
 }

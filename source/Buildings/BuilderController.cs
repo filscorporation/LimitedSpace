@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Steel;
 
 namespace SteelCustom.Buildings
@@ -21,12 +22,9 @@ namespace SteelCustom.Buildings
             building.Transformation.Position = (Vector3)map.GetCenterPosition(position, building.Size.X, building.Size.Y) + new Vector3(0, 0, 0.5f);
             Log.LogInfo($"TC position {building.Transformation.Position}");
             building.Init();
-            building.Place(map.GetBottomLeftTile(position, building.Size.X, building.Size.Y));
-
-            foreach (var tile in map.GetTiles(position, building.Size.X, building.Size.Y))
-            {
-                tile.SetOnObject(building);
-            }
+            var bottomLeftTile = map.GetBottomLeftTile(position, building.Size.X, building.Size.Y);
+            var allTiles = map.GetTiles(position, building.Size.X, building.Size.Y).ToList();
+            building.Place(bottomLeftTile, allTiles);
 
             return building;
         }

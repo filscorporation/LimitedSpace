@@ -126,14 +126,14 @@ namespace SteelCustom.MapSystem
             }
         }
 
-        public static void FindValue(T element, T inT, T outT)
+        private static void FindValue(T element, T inT, T outT)
         {
             element.HValue = (Math.Abs(outT.X - element.X) + Math.Abs(outT.Y - element.Y)) * 10;
             element.GValue = inT.GValue + 10;
             element.FValue = element.HValue + element.GValue;
         }
 
-        public static void FindValue(T element, T inT, T outT, int zero)
+        private static void FindValue(T element, T inT, T outT, int zero)
         {
             element.HValue = (Math.Abs(outT.X - element.X) + Math.Abs(outT.Y - element.Y)) * 10;
             if (zero == 0)

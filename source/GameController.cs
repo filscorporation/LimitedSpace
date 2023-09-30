@@ -44,6 +44,9 @@ namespace SteelCustom
 
         public override void OnUpdate()
         {
+            // !!!
+            UpdateCheats();
+            
             if (_changeState)
             {
                 _changeState = false;
@@ -152,6 +155,14 @@ namespace SteelCustom
             //DialogController.ShowWinDialog();
             
             yield return new WaitForSeconds(0.5f);
+        }
+
+        private void UpdateCheats()
+        {
+            if (Input.IsKeyJustPressed(KeyCode.Minus)) // +
+                Time.TimeScale /= 2;
+            if (Input.IsKeyJustPressed(KeyCode.Equal)) // +
+                Time.TimeScale *= 2;
         }
     }
 }
