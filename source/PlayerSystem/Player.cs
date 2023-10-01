@@ -65,9 +65,9 @@ namespace SteelCustom.PlayerSystem
 
         public void InitWorkers()
         {
-            _townCenter.SpawnUnit<Worker>();
-            _townCenter.SpawnUnit<Worker>();
-            _townCenter.SpawnUnit<Worker>();
+            _townCenter.SpawnUnit<Worker>(true);
+            _townCenter.SpawnUnit<Worker>(true);
+            _townCenter.SpawnUnit<Worker>(true);
         }
 
         public void Advance()

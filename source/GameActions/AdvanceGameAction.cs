@@ -6,7 +6,7 @@ namespace SteelCustom.GameActions
     public class AdvanceGameAction : TechnologyGameAction
     {
         public override string Name => "Advance";
-        public override string Description => "Advance to new era, unlocking new technologies and a wonder, required to win";
+        public override string Description => "Advance to new era, unlocking new technologies and a wonder, required to win.";
         public override string Icon => "ui_advance.png";
         public override float Duration => 90;
         public override ResourceCost Cost => new ResourceCost(0, 500, 0);

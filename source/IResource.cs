@@ -1,6 +1,7 @@
 ﻿using Steel;
 using SteelCustom.MapSystem;
 using SteelCustom.PlayerSystem.Resources;
+using SteelCustom.Units;
 
 namespace SteelCustom
 {
@@ -9,12 +10,12 @@ namespace SteelCustom
         ResourceType ResourceType { get; }
         int ResourceAmount { get; }
         float GatherDuration { get; }
-        bool CanBeGathered { get; }
         
         Vector2 Position { get; }
         bool IsDestroyed { get; }
         
-        bool TryGather();
+        bool TryGather(Worker worker);
+        bool CanBeGathered(Worker worker);
         MapObject ToMapObject();
         bool CanGatherFrom(Tile onTile);
     }

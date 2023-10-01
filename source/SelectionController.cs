@@ -18,6 +18,9 @@ namespace SteelCustom
             if (UI.IsPointerOverUI())
                 return;
             
+            if (GameController.Instance.BuilderController.HasDraft)
+                return;
+            
             if (Input.IsMouseJustPressed(MouseCodes.ButtonLeft))
             {
                 if (Hovered != null)

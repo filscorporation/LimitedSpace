@@ -10,6 +10,6 @@ namespace SteelCustom.Buildings
         protected override string SpritePath => "market.png";
         public override BuildingType Type => BuildingType.Market;
         public override float BuildingDuration => 45;
-        public override List<GameAction> GameActions => new List<GameAction>();
+        public override List<GameAction> GameActions => new List<GameAction> { new SellWoodGameAction() };
     }
 }

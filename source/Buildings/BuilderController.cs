@@ -2,13 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using Steel;
+using SteelCustom.GameActions;
 using SteelCustom.MapSystem;
-using SteelCustom.PlayerSystem.Resources;
 
 namespace SteelCustom.Buildings
 {
     public class BuilderController : ScriptComponent
     {
+        public bool HasDraft => _draftBuilding != null && !_draftBuilding.Entity.IsDestroyed();
+        
+        public AudioSource AudioSource { get; private set; }
+        
         private Building _draftBuilding;
         
         public override void OnUpdate()
@@ -19,7 +23,7 @@ namespace SteelCustom.Buildings
 
         public void Init()
         {
-            
+            AudioSource = Entity.AddComponent<AudioSource>();
         }
 
         public Building PlaceBuildingInstant(BuildingType buildingType, Vector2 position)
@@ -40,9 +44,29 @@ namespace SteelCustom.Buildings
             return building;
         }
 
+        public void TryStartPlacing(BuildingType buildingType)
+        {
+            if (CanStartPlacing(buildingType) != NotAvailableReason.None)
+                return;
+            
+            CreateDraft(buildingType);
+            UpdateDraft();
+        }
+
+        public NotAvailableReason CanStartPlacing(BuildingType buildingType)
+        {
+            if (!GameController.Instance.Player.Resources.HasAmount(BuildingsInfo.GetCost(buildingType)))
+                return NotAvailableReason.NoResources;
+            
+            if (buildingType == BuildingType.Wonder && !GameController.Instance.Player.IsInAdvancedEra)
+                return NotAvailableReason.NotAdvancedEra;
+            
+            return NotAvailableReason.None;
+        }
+
         private void UpdateBuildingHotkeys()
         {
-            if (Input.IsMouseJustPressed(MouseCodes.ButtonLeft))
+            if (Input.IsMouseJustPressed(MouseCodes.ButtonLeft) && !UI.IsPointerOverUI())
             {
                 PlaceDraft();
             }
@@ -89,15 +113,6 @@ namespace SteelCustom.Buildings
             }
         }
 
-        private void TryStartPlacing(BuildingType buildingType)
-        {
-            if (!GameController.Instance.Player.Resources.HasAmount(GetBuildingCost(buildingType)))
-                return;
-            
-            CreateDraft(buildingType);
-            UpdateDraft();
-        }
-
         private void CreateDraft(BuildingType buildingType)
         {
             ClearDraft();
@@ -130,7 +145,7 @@ namespace SteelCustom.Buildings
             
             Vector2 position = _draftBuilding.Transformation.Position;
 
-            var cost = GetBuildingCost(_draftBuilding.Type);
+            var cost = BuildingsInfo.GetCost(_draftBuilding.Type);
             GameController.Instance.Player.Resources.SpendAmount(cost);
 
             _draftBuilding.SetIsDraft(false);
@@ -147,23 +162,20 @@ namespace SteelCustom.Buildings
         {
             if (_draftBuilding == null)
                 return false;
-
-            if (_draftBuilding.Type == BuildingType.Wonder && !GameController.Instance.Player.IsInAdvancedEra)
-                return false;
             
             var map = GameController.Instance.Map;
             
             Vector2 position = _draftBuilding.Transformation.Position;
             
             var allTiles = map.GetTiles(position, _draftBuilding.Size.X, _draftBuilding.Size.Y).ToList();
-            if (allTiles.Any(t => t.IsOccupied))
+            if (allTiles.Any(t => t.IsOccupied) || allTiles.Count != _draftBuilding.Size.X * _draftBuilding.Size.Y)
                 return false;
             
             var allTilesHashSet = new HashSet<Tile>(allTiles);
             if (GameController.Instance.UnitsController.Units.Any(u => allTilesHashSet.Contains(u.OnTile)))
                 return false;
 
-            var cost = GetBuildingCost(_draftBuilding.Type);
+            var cost = BuildingsInfo.GetCost(_draftBuilding.Type);
             if (!GameController.Instance.Player.Resources.HasAmount(cost))
                 return false;
 
@@ -212,29 +224,6 @@ namespace SteelCustom.Buildings
             }
 
             return building;
-        }
-
-        private ResourceCost GetBuildingCost(BuildingType buildingType)
-        {
-            switch (buildingType)
-            {
-                case BuildingType.TownCenter:
-                    return new ResourceCost(300, 0, 0);
-                case BuildingType.House:
-                    return new ResourceCost(30, 0, 0);
-                case BuildingType.Farm:
-                    return new ResourceCost(60, 0, 0);
-                case BuildingType.LumberMill:
-                    return new ResourceCost(100, 0, 0);
-                case BuildingType.Mill:
-                    return new ResourceCost(100, 0, 0);
-                case BuildingType.Market:
-                    return new ResourceCost(200, 0, 0);
-                case BuildingType.Wonder:
-                    return new ResourceCost(5000, 0, 2000);
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(buildingType), buildingType, null);
-            }
         }
     }
 }

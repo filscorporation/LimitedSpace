@@ -6,7 +6,7 @@ namespace SteelCustom.GameActions
     public class BowSawGameAction : TechnologyGameAction
     {
         public override string Name => "Bow saw";
-        public override string Description => "Workers chop wood 50% faster";
+        public override string Description => "Workers chop wood 50% faster.";
         public override string Icon => "ui_bow_saw.png";
         public override float Duration => 30;
         public override ResourceCost Cost => new ResourceCost(200, 100, 0);

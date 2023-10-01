@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="Buildings\BuilderController.cs" />
     <Compile Include="Buildings\Building.cs" />
+    <Compile Include="Buildings\BuildingsInfo.cs" />
     <Compile Include="Buildings\BuildingType.cs" />
     <Compile Include="Buildings\Farm.cs" />
     <Compile Include="Buildings\House.cs" />
@@ -58,6 +59,7 @@
     <Compile Include="GameActions\GameAction.cs" />
     <Compile Include="GameActions\HeavyPlowGameAction.cs" />
     <Compile Include="GameActions\NotAvailableReason.cs" />
+    <Compile Include="GameActions\SellWoodGameAction.cs" />
     <Compile Include="GameActions\TechnologyGameAction.cs" />
     <Compile Include="GameActions\TreadmillCraneGameAction.cs" />
     <Compile Include="GameActions\WheelbarrowGameAction.cs" />
@@ -79,12 +81,15 @@
     <Compile Include="PlayerSystem\Upgrades\Upgrade.cs" />
     <Compile Include="PlayerSystem\Upgrades\WheelbarrowUpgrade.cs" />
     <Compile Include="GameState.cs" />
+    <Compile Include="ResourceGainAnimator.cs" />
     <Compile Include="SelectableObject.cs" />
     <Compile Include="SelectionController.cs" />
     <Compile Include="UIElements\UIBuilderController.cs" />
     <Compile Include="UIElements\UIController.cs" />
     <Compile Include="UIElements\UIGameHUDController.cs" />
     <Compile Include="UIElements\UIGameTime.cs" />
+    <Compile Include="UIElements\UIInfo.cs" />
+    <Compile Include="UIElements\UIInfoProvider.cs" />
     <Compile Include="UIElements\UIMenu.cs" />
     <Compile Include="UIElements\UIPopulation.cs" />
     <Compile Include="UIElements\UIResourcesController.cs" />

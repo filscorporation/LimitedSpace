@@ -61,7 +61,7 @@ namespace SteelCustom.Units
             Building targetBuilding = null;
             if (tile != null && tile.IsOccupied)
             {
-                if (tile.OnObject is IResource resource && resource.CanBeGathered)
+                if (tile.OnObject is IResource resource && unit is Worker worker && resource.CanBeGathered(worker))
                 {
                     tile = map.GetClosestPassableTile(unit.OnTile, resource.ToMapObject(), false);
                     if (tile != null)
@@ -69,7 +69,7 @@ namespace SteelCustom.Units
                         targetResource = resource;
                     }
                 }
-                else if (tile.OnObject is Building building && unit is Worker worker && worker.ResourceAmount > 0 && building.IsStorage(worker.ResourceType))
+                else if (tile.OnObject is Building building && unit is Worker worker2 && worker2.ResourceAmount > 0 && building.IsStorage(worker2.ResourceType))
                 {
                     tile = map.GetClosestPassableTile(unit.OnTile, building, false);
                     if (tile != null)

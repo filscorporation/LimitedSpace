@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Steel;
 using SteelCustom.GameActions;
 using SteelCustom.MapSystem;
@@ -25,9 +24,13 @@ namespace SteelCustom.Units
 
         private bool _isMale;
         private bool _isWorking;
-        
-        private float _gatherTimer;
+
+        private bool _isIdleEffectActive;
+        private Entity _idleEffect;
         private PlayerEffects _playerEffects;
+        private float _gatherTimer;
+        private AudioSource _audioSource;
+        private AudioTrack _hitAudio;
 
         private const float GATHER_SPEED = 1f;
 
@@ -35,6 +38,17 @@ namespace SteelCustom.Units
         {
             _isMale = Random.NextFloat(0, 1) < 0.5f;
             _playerEffects = GameController.Instance.Player.Effects;
+
+            _audioSource = Entity.AddComponent<AudioSource>();
+            _hitAudio = ResourcesManager.GetAudioTrack("hit.wav");
+
+            _idleEffect = new Entity("Idle", Entity);
+            _idleEffect.AddComponent<SpriteRenderer>().Sprite = ResourcesManager.GetImage("idle_icon.png");
+            _idleEffect.Transformation.LocalPosition = new Vector3(0, 1, 1);
+            _idleEffect.IsActiveSelf = false;
+            _isIdleEffectActive = false;
+            
+            UpdateIdle(true);
             
             base.Init(tile);
         }
@@ -53,11 +67,15 @@ namespace SteelCustom.Units
         {
             _isWorking = false;
             _gatherTimer = 0;
+            
+            UpdateIdle(false);
         }
 
         protected override void OnMovementCompleted()
         {
-            if ((_targetResource == null || _targetResource.IsDestroyed) && _targetResourceObjectType != null)
+            UpdateIdle(true);
+            
+            if ((_targetResource == null || _targetResource.IsDestroyed || !_targetResource.CanBeGathered(this)) && _targetResourceObjectType != null)
             {
                 if (!TryFindNewResourceObject())
                 {
@@ -65,15 +83,17 @@ namespace SteelCustom.Units
                     _targetBuilding = null;
                 }
             }
-            if (_targetResource != null && !_targetResource.IsDestroyed && _targetResource.CanGatherFrom(_onTile))
+            if (_targetResource != null && !_targetResource.IsDestroyed && _targetResource.CanBeGathered(this) && _targetResource.CanGatherFrom(_onTile))
             {
                 _isWorking = true;
+                
+                UpdateIdle(false);
             }
             if (_targetBuilding != null && !_targetBuilding.Entity.IsDestroyed() && GameController.Instance.Map.IsNextTo(_onTile, _targetBuilding))
             {
                 DropResource();
                 
-                if (_targetResource != null && !_targetResource.IsDestroyed)
+                if (_targetResource != null && !_targetResource.IsDestroyed && _targetResource.CanBeGathered(this))
                 {
                     if (GameController.Instance.Map.IsNextTo(_onTile, _targetResource.ToMapObject()))
                         _isWorking = true;
@@ -81,10 +101,21 @@ namespace SteelCustom.Units
                     {
                         var tile = GameController.Instance.Map.GetClosestPassableTile(_onTile, _targetResource.ToMapObject(), false);
                         if (tile != null)
+                        {
                             MoveTo(tile);
+                        }
                     }
+                
+                    UpdateIdle(false);
                 }
             }
+        }
+
+        protected override void Rotate(Vector3 target)
+        {
+            base.Rotate(target);
+            
+            _idleEffect.Transformation.Rotation = Vector3.Zero;
         }
 
         private bool TryFindNewResourceObject()
@@ -92,7 +123,7 @@ namespace SteelCustom.Units
             if (!_targetResourceObjectPosition.HasValue || !_targetResourceObjectType.HasValue)
                 return false;
             
-            var resourceObject = GameController.Instance.Map.GetClosestResource(_targetResourceObjectPosition.Value, _targetResourceObjectType.Value);
+            var resourceObject = GameController.Instance.Map.GetClosestResource(this, _targetResourceObjectPosition.Value, _targetResourceObjectType.Value);
             if (resourceObject != null)
             {
                 _targetResource = resourceObject;
@@ -104,7 +135,7 @@ namespace SteelCustom.Units
 
         private void Gather(IResource resource)
         {
-            if (IsFull || resource == null || resource.IsDestroyed || resource.ResourceAmount <= 0)
+            if (IsFull || resource == null || resource.IsDestroyed || !resource.CanBeGathered(this) || resource.ResourceAmount <= 0)
             {
                 GoToStorage();
                 return;
@@ -114,9 +145,12 @@ namespace SteelCustom.Units
             if (_gatherTimer >= resource.GatherDuration)
             {
                 _gatherTimer = 0;
-                if (resource.TryGather())
+                if (resource.TryGather(this))
                 {
                     AddResource(1, resource.ResourceType);
+                    
+                    if (GameController.Instance.Player.Population <= 5 || Random.NextFloat(0, 1) < 0.33f)
+                        _audioSource.Play(_hitAudio);
                 }
             }
             
@@ -140,6 +174,8 @@ namespace SteelCustom.Units
 
         private void GoToStorage()
         {
+            UpdateIdle(true);
+            
             Log.LogInfo($"Worker go to storage: {ResourceAmount} {ResourceType}");
             var closestStorage = GameController.Instance.Map.GetClosestStorage(_onTile, ResourceType);
             if (closestStorage != null)
@@ -171,10 +207,21 @@ namespace SteelCustom.Units
             if (ResourceAmount <= 0)
                 return;
             
+            GameController.Instance.ResourceGainAnimator.Animate(Transformation.Position, ResourceType);
+            
             Log.LogInfo($"Drop resource {ResourceType}: {GameController.Instance.Player.Resources.GetAmount(ResourceType)} +{ResourceAmount}");
             
             GameController.Instance.Player.Resources.AddAmount(ResourceType, ResourceAmount);
             ResourceAmount = 0;
+        }
+
+        private void UpdateIdle(bool isIdle)
+        {
+            if (_isIdleEffectActive == isIdle)
+                return;
+
+            _isIdleEffectActive = isIdle;
+            _idleEffect.IsActiveSelf = _isIdleEffectActive;
         }
     }
 }

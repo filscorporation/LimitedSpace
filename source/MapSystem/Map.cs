@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Steel;
 using SteelCustom.Buildings;
 using SteelCustom.PlayerSystem.Resources;
+using SteelCustom.Units;
 using Random = Steel.Random;
 
 namespace SteelCustom.MapSystem
@@ -15,7 +15,7 @@ namespace SteelCustom.MapSystem
         private Tile[,] _tiles;
 
         //private const int SIZE = 256;
-        private const int SIZE = 64;
+        private const int SIZE = 80;
         private const int NO_TREES_SIZE = 14;
 
         public void Init()
@@ -148,7 +148,7 @@ namespace SteelCustom.MapSystem
             }
         }
 
-        public IResource GetClosestResource(Vector2 targetPosition, ResourceType resourceType)
+        public IResource GetClosestResource(Worker worker, Vector2 targetPosition, ResourceType resourceType)
         {
             var targetTile = GetTileAt(targetPosition);
             if (targetTile == null)
@@ -160,7 +160,7 @@ namespace SteelCustom.MapSystem
             
             foreach (Tile tile in SpiralSearch(targetTile, maxTilesToSearch, 2))
             {
-                if (tile.OnObject is IResource resource && resource.CanBeGathered && resource.ResourceType == resourceType)
+                if (tile.OnObject is IResource resource && resource.CanBeGathered(worker) && resource.ResourceType == resourceType)
                 {
                     float distance = Vector2.Distance(targetPosition, new Vector2(resource.Position.X, resource.Position.Y));
                     if (distance < minDistance)

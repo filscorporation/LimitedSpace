@@ -59,12 +59,10 @@ namespace SteelCustom.Units
 
         public override void OnMouseEnter()
         {
-            if (UI.IsPointerOverUI())
+            if (UI.IsPointerOverUI() || GameController.Instance.BuilderController.HasDraft)
                 return;
             
             GameController.Instance.SelectionController.Hovered = this;
-            
-            Log.LogInfo($"Enter {Entity.Transformation.Position} mouse {Camera.Main.ScreenToWorldPoint(Input.MousePosition)}");
             
             OverrideColor(new Color(240, 233, 201));
         }
@@ -160,7 +158,7 @@ namespace SteelCustom.Units
             }
         }
         
-        protected void Rotate(Vector3 target)
+        protected virtual void Rotate(Vector3 target)
         {
             Vector2 vector = target - Transformation.Position;
             float angle = -Math.Atan2(vector.X, vector.Y);

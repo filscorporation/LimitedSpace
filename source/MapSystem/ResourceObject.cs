@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Steel;
 using SteelCustom.PlayerSystem.Resources;
+using SteelCustom.Units;
 
 namespace SteelCustom.MapSystem
 {
@@ -11,7 +12,6 @@ namespace SteelCustom.MapSystem
         public bool IsDestroyed => Entity.IsDestroyed();
         public abstract ResourceType ResourceType { get; }
         public int ResourceAmount { get; protected set; }
-        public bool CanBeGathered => ResourceAmount > 0;
 
         public virtual void Init()
         {
@@ -37,7 +37,7 @@ namespace SteelCustom.MapSystem
             }
         }
 
-        public bool TryGather()
+        public bool TryGather(Worker worker)
         {
             if (ResourceAmount <= 0)
                 return false;
@@ -49,6 +49,11 @@ namespace SteelCustom.MapSystem
                 OnResourceDepleted();
             
             return true;
+        }
+
+        bool IResource.CanBeGathered(Worker worker)
+        {
+            return ResourceAmount > 0;
         }
 
         public MapObject ToMapObject()

@@ -6,7 +6,7 @@ namespace SteelCustom.GameActions
     public class HeavyPlowGameAction : TechnologyGameAction
     {
         public override string Name => "Heavy plow";
-        public override string Description => "Triple farm food capacity";
+        public override string Description => "Triple farm food capacity.";
         public override string Icon => "ui_heavy_plow.png";
         public override float Duration => 60;
         public override ResourceCost Cost => new ResourceCost(100, 100, 0);

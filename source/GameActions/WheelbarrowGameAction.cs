@@ -6,7 +6,7 @@ namespace SteelCustom.GameActions
     public class WheelbarrowGameAction : TechnologyGameAction
     {
         public override string Name => "Wheelbarrow";
-        public override string Description => "Increase workers speed and double their capacity";
+        public override string Description => "Increase workers movement speed by 50% and double their capacity.";
         public override string Icon => "ui_wheelbarrow.png";
         public override float Duration => 60;
         public override ResourceCost Cost => new ResourceCost(200, 200, 100);
@@ -33,7 +33,7 @@ namespace SteelCustom.GameActions
         {
             Player player = GameController.Instance.Player;
             player.Effects.WorkerCapacityBonus += 10;
-            player.Effects.WorkerSpeedBonus *= 1.3f;
+            player.Effects.WorkerSpeedBonus *= 1.5f;
         }
     }
 }

@@ -43,6 +43,7 @@ namespace SteelCustom.UIElements
             CreateMenuButton("Exit", 2 * K).OnClick.AddCallback(Exit);
             soundButton = CreateSoundButton();
             CreateAbout();
+            CreateTips();
             
             Time.TimeScale = 0.0f;
         }
@@ -61,6 +62,7 @@ namespace SteelCustom.UIElements
             CreateMenuButton("Restart", 24 * K).OnClick.AddCallback(Restart);
             CreateMenuButton("Exit", 2 * K).OnClick.AddCallback(Exit);
             CreateAbout();
+            CreateWinInfo();
         }
 
         private void OpenMenu()
@@ -79,7 +81,7 @@ namespace SteelCustom.UIElements
             if (winMenuOpened)
                 return;
             
-            Time.TimeScale = 1.0f;
+            Time.TimeScale = GameController.Instance.GameSpeed;
             
             menuOpened = false;
             menu.IsActiveSelf = false;
@@ -167,6 +169,58 @@ namespace SteelCustom.UIElements
             text.RectTransform.AnchorMax = new Vector2(0.5f, 0.0f);
             text.RectTransform.Pivot = new Vector2(0.0f, 0.0f);
             text.RectTransform.Size = new Vector2(160 * K, 10 * K);
+        }
+
+        private void CreateWinInfo()
+        {
+            UIImage image = UI.CreateUIImage(ResourcesManager.GetImage("ui_frame.png"), "Background", menu);
+            image.RectTransform.AnchorMin = new Vector2(0.5f, 1);
+            image.RectTransform.AnchorMax = new Vector2(0.5f, 1);
+            image.RectTransform.Pivot = new Vector2(0.5f, 1);
+            image.RectTransform.Size = new Vector2(160 * K, 40 * K);
+            image.RectTransform.AnchoredPosition = new Vector2(0 * K, -2 * K);
+            
+            UIText header = UI.CreateUIText($"Game completed!", "Text", menu);
+            header.Color = UIController.DarkColor;
+            header.TextSize = 80;
+            header.TextAlignment = AlignmentType.TopLeft;
+            header.RectTransform.AnchorMin = new Vector2(0.5f, 1);
+            header.RectTransform.AnchorMax = new Vector2(0.5f, 1);
+            header.RectTransform.Pivot = new Vector2(0.5f, 1);
+            header.RectTransform.Size = new Vector2(160 * K, (20 - 4) * K);
+            header.RectTransform.AnchoredPosition = new Vector2(4 * K, -4 * K);
+            
+            UIText text = UI.CreateUIText($"You built the Wonder in just {(int)GameController.Instance.Player.GameTime} seconds!\n\nFaster then 2000 is a good result)", "Text", menu);
+            text.Color = UIController.DarkColor;
+            text.TextSize = 32;
+            text.TextAlignment = AlignmentType.TopLeft;
+            text.RectTransform.AnchorMin = new Vector2(0.5f, 1);
+            text.RectTransform.AnchorMax = new Vector2(0.5f, 1);
+            text.RectTransform.Pivot = new Vector2(0.5f, 1);
+            text.RectTransform.Size = new Vector2(160 * K, (40 - 4) * K);
+            text.RectTransform.AnchoredPosition = new Vector2(4 * K, (-4 - 20) * K);
+        }
+
+        private void CreateTips()
+        {
+            UIImage image = UI.CreateUIImage(ResourcesManager.GetImage("ui_frame.png"), "Background", menu);
+            image.RectTransform.AnchorMin = new Vector2(1, 0.0f);
+            image.RectTransform.AnchorMax = new Vector2(1, 0.0f);
+            image.RectTransform.Pivot = new Vector2(1.0f, 0.0f);
+            image.RectTransform.Size = new Vector2(160 * K, 54 * K);
+            image.RectTransform.AnchoredPosition = new Vector2(-2 * K, 100 * K);
+            
+            UIText text = UI.CreateUIText("Tips:\nChop wood, to collect resources and free up space.\nBuild more workers, create farms, research technologies.\nAdvance to the next era and build the Wonder to win.\n\n" +
+                                          "Left click to select worker or building, right click to give orders.\nUse WASD or mouse to move the camera, press F to recenter.", "Tips", menu);
+            text.Color = UIController.DarkColor;
+            text.TextSize = 32;
+            text.TextAlignment = AlignmentType.TopLeft;
+            text.TextOverflowMode = OverflowMode.WrapByWords;
+            text.RectTransform.AnchorMin = new Vector2(1, 0.0f);
+            text.RectTransform.AnchorMax = new Vector2(1, 0.0f);
+            text.RectTransform.Pivot = new Vector2(1.0f, 0.0f);
+            text.RectTransform.Size = new Vector2(160 * K, (54 - 4) * K);
+            text.RectTransform.AnchoredPosition = new Vector2(0 * K, 102 * K);
         }
     }
 }

@@ -17,10 +17,16 @@ namespace SteelCustom.Buildings
 
         public bool IsBuilt { get; private set; }
         public bool IsQueueBlocked { get; private set; }
+
+        public bool HasQueue => _queue.Any();
+        public float QueueTimeLeft => _queue.Any() ? Math.Max(0, _queue.Peek().Duration - _queueTimer) : 0;
+        public List<GameAction> TopQueue => new List<GameAction>(_queue.Take(3));
         
         private Entity _selectionEffect;
         private bool _isDraft;
         private float _buildingTimer;
+        private AudioSource _audioSource;
+        private AudioTrack _spawnAudio;
 
         private readonly Queue<GameAction> _queue = new Queue<GameAction>();
         private float _queueTimer;
@@ -37,9 +43,9 @@ namespace SteelCustom.Buildings
 
         public override void OnMouseEnter()
         {
-            if (UI.IsPointerOverUI() || !IsBuilt)
+            if (UI.IsPointerOverUI() || !IsBuilt || GameController.Instance.BuilderController.HasDraft)
                 return;
-            
+
             GameController.Instance.SelectionController.Hovered = this;
             
             //OverrideColor(new Color(240, 233, 201));
@@ -59,6 +65,9 @@ namespace SteelCustom.Buildings
             Entity.AddComponent<SpriteRenderer>().Sprite = sprite;
             Entity.AddComponent<BoxCollider>().Size = new Vector2(Size.X, Size.Y);
             Entity.AddComponent<RigidBody>().RigidBodyType = RigidBodyType.Static;
+
+            _audioSource = Entity.AddComponent<AudioSource>();
+            _spawnAudio = ResourcesManager.GetAudioTrack("worker_created.wav");
 
             _selectionEffect = new Entity("Selection", Entity);
             _selectionEffect.Transformation.LocalPosition = new Vector3(0, 0, 1);
@@ -86,6 +95,8 @@ namespace SteelCustom.Buildings
                 tile.SetOnObject(this);
             }
             
+            _audioSource.Play(ResourcesManager.GetAudioTrack("place_building.wav"));
+            
             OnPlaced();
 
             if (!instant)
@@ -106,8 +117,10 @@ namespace SteelCustom.Buildings
 
         public void Destroy()
         {
-            Entity.Destroy();
+            GameController.Instance.BuilderController.AudioSource.Play(ResourcesManager.GetAudioTrack("destroy_building.wav"));
+            
             Dispose();
+            Entity.Destroy();
         }
 
         public void AddGameActionToQueue(GameAction gameAction)
@@ -123,11 +136,16 @@ namespace SteelCustom.Buildings
             CallOnChanged();
         }
 
-        public T SpawnUnit<T>() where T : Unit, new()
+        public T SpawnUnit<T>(bool mute = false) where T : Unit, new()
         {
             var tile = GameController.Instance.Map.GetPassableTilesAround(this).FirstOrDefault();
             if (tile == null)
                 return null;
+
+            if (!mute)
+            {
+                _audioSource.Play(_spawnAudio);
+            }
 
             return GameController.Instance.UnitsController.SpawnUnit<T>(tile);
         }
@@ -172,6 +190,8 @@ namespace SteelCustom.Buildings
                 _constructionEffect = null;
             }
             
+            _audioSource.Play(ResourcesManager.GetAudioTrack("building_finished.wav"));
+            
             ResetOverride();
         }
 
@@ -202,6 +222,7 @@ namespace SteelCustom.Buildings
             if (_queueTimer >= _queue.Peek().Duration)
             {
                 GameAction gameAction = _queue.Dequeue();
+                _queueTimer -= gameAction.Duration;
 
                 CompleteGameAction(gameAction);
 
@@ -212,6 +233,9 @@ namespace SteelCustom.Buildings
         private void CompleteGameAction(GameAction gameAction)
         {
             gameAction.DoAction(this);
+            
+            if (gameAction is TechnologyGameAction)
+                _audioSource.Play(ResourcesManager.GetAudioTrack("technology_ready.wav"));
         }
 
         protected override void OnSelectedChanged()

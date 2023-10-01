@@ -19,6 +19,7 @@ namespace SteelCustom
         public Player Player { get; private set; }
         public SelectionController SelectionController { get; private set; }
         public Map Map { get; private set; }
+        public ResourceGainAnimator ResourceGainAnimator { get; private set; }
         public CameraController CameraController { get; private set; }
         public BuilderController BuilderController { get; private set; }
         public UnitsController UnitsController { get; private set; }
@@ -26,14 +27,27 @@ namespace SteelCustom
         public UIController UIController { get; private set; }
 
         public GameState GameState { get; private set; }
-        
+
+        public float GameSpeed
+        {
+            get => _gameSpeed;
+            set
+            {
+                _gameSpeed = value;
+                Time.TimeScale = _gameSpeed;
+            }
+        }
+
         private bool _changeState;
         private bool _startGame;
         private bool _winGame;
-        
+        private float _gameSpeed = 1;
+
         public override void OnCreate()
         {
             Instance = this;
+            
+            Camera.Main.Entity.GetComponent<AudioListener>().Volume = DEFAULT_VOLUME;
 
             Screen.Color = new Color(204, 146, 94);
             Screen.Width = 1600;
@@ -47,7 +61,7 @@ namespace SteelCustom
         public override void OnUpdate()
         {
             // !!!
-            UpdateCheats();
+            //UpdateCheats();
             
             if (_changeState)
             {
@@ -104,6 +118,7 @@ namespace SteelCustom
             Player = new Entity("Player").AddComponent<Player>();
             SelectionController = new Entity("SelectionController").AddComponent<SelectionController>();
             Map = new Entity("Map").AddComponent<Map>();
+            ResourceGainAnimator = new Entity("ResourceGainAnimator").AddComponent<ResourceGainAnimator>();
             CameraController = Camera.Main.Entity.AddComponent<CameraController>();
             BuilderController = new Entity("BuilderController").AddComponent<BuilderController>();
             UnitsController = new Entity("UnitsController").AddComponent<UnitsController>();
@@ -124,6 +139,8 @@ namespace SteelCustom
         {
             GameState = GameState.Intro;
             Log.LogInfo("Start Intro state");
+
+            yield return new WaitForSeconds(0.2f);
 
             InitGame();
 
@@ -194,6 +211,9 @@ namespace SteelCustom
                 Player.Resources.Food += 500;
             if (Input.IsKeyJustPressed(KeyCode.M))
                 Player.Resources.Gold += 500;
+            
+            if (Input.IsKeyJustPressed(KeyCode.L))
+                WinGame();
         }
     }
 }

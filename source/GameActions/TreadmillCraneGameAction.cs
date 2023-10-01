@@ -6,7 +6,7 @@ namespace SteelCustom.GameActions
     public class TreadmillCraneGameAction : TechnologyGameAction
     {
         public override string Name => "Treadmill crane";
-        public override string Description => "Double construction speed";
+        public override string Description => "Double construction speed.\nRequires advanced era.";
         public override string Icon => "ui_treadmill_crane.png";
         public override float Duration => 60;
         public override ResourceCost Cost => new ResourceCost(500, 300, 200);
