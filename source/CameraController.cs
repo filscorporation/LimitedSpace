@@ -6,7 +6,7 @@ namespace SteelCustom
     {
         public bool CanControl { get; set; }
 
-        private const int GAP = 25;
+        private const int GAP = 15;
         private const float SPEED = 8;
         
         public void Init()
@@ -31,6 +31,15 @@ namespace SteelCustom
             if (mousePosition.Y < GAP)
                 MoveCamera(new Vector2(0, -delta));
             if (mousePosition.Y > Screen.Height - GAP)
+                MoveCamera(new Vector2(0, delta));
+            
+            if (Input.IsKeyPressed(KeyCode.A))
+                MoveCamera(new Vector2(-delta, 0));
+            if (Input.IsKeyPressed(KeyCode.D))
+                MoveCamera(new Vector2(delta, 0));
+            if (Input.IsKeyPressed(KeyCode.S))
+                MoveCamera(new Vector2(0, -delta));
+            if (Input.IsKeyPressed(KeyCode.W))
                 MoveCamera(new Vector2(0, delta));
 
             if (Input.IsKeyJustPressed(KeyCode.F))

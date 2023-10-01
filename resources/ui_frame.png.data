@@ -6,7 +6,7 @@ data:
   sliceBottomOffset: 1
   sliceLeftOffset: 1
   sliceRightOffset: 1
-  pixelsPerUnit: 128
+  pixelsPerUnit: 32
   pivot: [0.5, 0.5]
   isTransparent: false
   isSpriteSheet: false

@@ -4,6 +4,7 @@ using System.Linq;
 using Steel;
 using SteelCustom.Buildings;
 using SteelCustom.PlayerSystem.Resources;
+using Random = Steel.Random;
 
 namespace SteelCustom.MapSystem
 {
@@ -105,8 +106,15 @@ namespace SteelCustom.MapSystem
             }
         }
 
-        public Tile GetClosestPassableTileAround(Tile pivot, MapObject mapObject, bool withCorners)
+        public Tile GetClosestPassableTile(Tile pivot, MapObject mapObject, bool withCorners)
         {
+            if (!mapObject.IsBlocking)
+            {
+                // Random passable tile inside
+                var tiles = mapObject.OnTiles().Where(t => t != null && t.Passable).ToList();
+                return tiles.Any() ? tiles[Random.NextInt(0, tiles.Count - 1)] : null;
+            }
+            
             Tile closestTile = null;
             float minDistance = float.MaxValue;
             foreach (Tile tile in GetPassableTilesAround(mapObject, withCorners))
@@ -140,29 +148,29 @@ namespace SteelCustom.MapSystem
             }
         }
 
-        public ResourceObject GetClosestResourceObject(Vector2 targetPosition, ResourceType resourceType)
+        public IResource GetClosestResource(Vector2 targetPosition, ResourceType resourceType)
         {
             var targetTile = GetTileAt(targetPosition);
             if (targetTile == null)
                 return null;
             
             const int maxTilesToSearch = 400;
-            ResourceObject closestObject = null;
+            IResource closestResource = null;
             float minDistance = float.MaxValue;
             
             foreach (Tile tile in SpiralSearch(targetTile, maxTilesToSearch, 2))
             {
-                if (tile.OnObject is ResourceObject resourceObject && resourceObject.ResourceType == resourceType)
+                if (tile.OnObject is IResource resource && resource.CanBeGathered && resource.ResourceType == resourceType)
                 {
-                    float distance = Vector2.Distance(targetPosition, new Vector2(resourceObject.Entity.Transformation.Position.X, resourceObject.Entity.Transformation.Position.Y));
+                    float distance = Vector2.Distance(targetPosition, new Vector2(resource.Position.X, resource.Position.Y));
                     if (distance < minDistance)
                     {
                         minDistance = distance;
-                        closestObject = resourceObject;
+                        closestResource = resource;
                     }
                 }
             }
-            return closestObject;
+            return closestResource;
         }
 
         public IEnumerable<Tile> SpiralSearch(Tile targetTile, int maxTilesToSearch = int.MaxValue, int radiusStep = 1)
@@ -227,11 +235,27 @@ namespace SteelCustom.MapSystem
                 && (onTile.Y == mapObject.OnBottomLeftTile.Y - 1 || onTile.Y == mapObject.OnBottomLeftTile.Y + mapObject.Size.Y);
         }
 
-        public Building GetClosestStorage(Tile start, ResourceType resourceType)
+        public Building GetClosestStorage(Tile targetTile, ResourceType resourceType)
         {
-            // TODO
+            const int maxTilesToSearch = 400;
+            Building closestBuilding = null;
+            float minDistance = float.MaxValue;
 
-            return GameController.Instance.Player.TownCenter;
+            Vector2 targetPosition = CoordsToPosition(targetTile.X, targetTile.Y);
+            
+            foreach (Tile tile in SpiralSearch(targetTile, maxTilesToSearch, 2))
+            {
+                if (tile.OnObject is Building building && building.IsBuilt && building.IsStorage(resourceType))
+                {
+                    float distance = Vector2.Distance(targetPosition, new Vector2(building.Transformation.Position.X, building.Transformation.Position.Y));
+                    if (distance < minDistance)
+                    {
+                        minDistance = distance;
+                        closestBuilding = building;
+                    }
+                }
+            }
+            return closestBuilding;
         }
         
         public List<Tile> GetPath(Tile a, Tile b)
@@ -239,7 +263,6 @@ namespace SteelCustom.MapSystem
             List<Tile> path = PathFinder<Tile>.FindPath(a, b, _tiles, true);
             if (path.Any() && !b.Passable)
                 path.Remove(b);
-            // TODO: check path end
             return path;
         }
 
@@ -294,6 +317,7 @@ namespace SteelCustom.MapSystem
             tree.Init();
             var bottomLeftTile = GetBottomLeftTile(CoordsToPosition(x, y), 2, 2);
             var allTiles = GetTiles(CoordsToPosition(x, y), 2, 2).ToList();
+            tree.Init();
             tree.Place(bottomLeftTile, allTiles);
             tree.Transformation.Position = (Vector3)GetCenterPosition(CoordsToPosition(x, y), 2, 2) + new Vector3(0, 0, 0.5f);
             

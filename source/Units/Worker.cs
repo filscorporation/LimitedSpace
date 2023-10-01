@@ -1,7 +1,12 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Steel;
+using SteelCustom.GameActions;
 using SteelCustom.MapSystem;
+using SteelCustom.PlayerSystem;
 using SteelCustom.PlayerSystem.Resources;
+using Random = Steel.Random;
 
 namespace SteelCustom.Units
 {
@@ -10,20 +15,26 @@ namespace SteelCustom.Units
         public int ResourceAmount { get; private set; }
         public ResourceType ResourceType { get; private set; }
         public bool IsFull => ResourceAmount >= Capacity;
+
+        public override string Name => "Worker";
+        public override List<GameAction> GameActions => new List<GameAction>();
         
         protected override string SpritePath => _isMale ? "worker_m.png" : "worker_f.png";
-        protected override float Speed => 3f;
-        protected float GatherSpeed => 1;
-        protected int Capacity => 10;
+        protected override float Speed => 3f * _playerEffects.WorkerSpeedBonus;
+        protected int Capacity => 10 + _playerEffects.WorkerCapacityBonus;
 
         private bool _isMale;
         private bool _isWorking;
         
         private float _gatherTimer;
+        private PlayerEffects _playerEffects;
+
+        private const float GATHER_SPEED = 1f;
 
         public override void Init(Tile tile)
         {
             _isMale = Random.NextFloat(0, 1) < 0.5f;
+            _playerEffects = GameController.Instance.Player.Effects;
             
             base.Init(tile);
         }
@@ -34,7 +45,7 @@ namespace SteelCustom.Units
 
             if (_isWorking)
             {
-                Gather(_targetResourceObject);
+                Gather(_targetResource);
             }
         }
 
@@ -46,7 +57,7 @@ namespace SteelCustom.Units
 
         protected override void OnMovementCompleted()
         {
-            if ((_targetResourceObject == null || _targetResourceObject.Entity.IsDestroyed()) && _targetResourceObjectType != null)
+            if ((_targetResource == null || _targetResource.IsDestroyed) && _targetResourceObjectType != null)
             {
                 if (!TryFindNewResourceObject())
                 {
@@ -54,7 +65,7 @@ namespace SteelCustom.Units
                     _targetBuilding = null;
                 }
             }
-            if (_targetResourceObject != null && !_targetResourceObject.Entity.IsDestroyed() && GameController.Instance.Map.IsNextTo(_onTile, _targetResourceObject))
+            if (_targetResource != null && !_targetResource.IsDestroyed && _targetResource.CanGatherFrom(_onTile))
             {
                 _isWorking = true;
             }
@@ -62,13 +73,13 @@ namespace SteelCustom.Units
             {
                 DropResource();
                 
-                if (_targetResourceObject != null && !_targetResourceObject.Entity.IsDestroyed())
+                if (_targetResource != null && !_targetResource.IsDestroyed)
                 {
-                    if (GameController.Instance.Map.IsNextTo(_onTile, _targetResourceObject))
+                    if (GameController.Instance.Map.IsNextTo(_onTile, _targetResource.ToMapObject()))
                         _isWorking = true;
                     else
                     {
-                        var tile = GameController.Instance.Map.GetClosestPassableTileAround(_onTile, _targetResourceObject, false);
+                        var tile = GameController.Instance.Map.GetClosestPassableTile(_onTile, _targetResource.ToMapObject(), false);
                         if (tile != null)
                             MoveTo(tile);
                     }
@@ -81,35 +92,50 @@ namespace SteelCustom.Units
             if (!_targetResourceObjectPosition.HasValue || !_targetResourceObjectType.HasValue)
                 return false;
             
-            var resourceObject = GameController.Instance.Map.GetClosestResourceObject(_targetResourceObjectPosition.Value, _targetResourceObjectType.Value);
+            var resourceObject = GameController.Instance.Map.GetClosestResource(_targetResourceObjectPosition.Value, _targetResourceObjectType.Value);
             if (resourceObject != null)
             {
-                _targetResourceObject = resourceObject;
+                _targetResource = resourceObject;
                 return true;
             }
 
             return false;
         }
 
-        private void Gather(ResourceObject resourceObject)
+        private void Gather(IResource resource)
         {
-            if (IsFull || resourceObject == null || resourceObject.Entity.IsDestroyed() || resourceObject.ResourceAmount <= 0)
+            if (IsFull || resource == null || resource.IsDestroyed || resource.ResourceAmount <= 0)
             {
                 GoToStorage();
                 return;
             }
             
-            _gatherTimer += GatherSpeed * Time.DeltaTime;
-            if (_gatherTimer >= resourceObject.GatherDuration)
+            _gatherTimer += GetGatherSpeed(resource.ResourceType) * Time.DeltaTime;
+            if (_gatherTimer >= resource.GatherDuration)
             {
                 _gatherTimer = 0;
-                if (resourceObject.TryGather())
+                if (resource.TryGather())
                 {
-                    AddResource(1, resourceObject.ResourceType);
+                    AddResource(1, resource.ResourceType);
                 }
             }
             
-            Rotate(resourceObject.Transformation.Position);
+            Rotate(resource.Position);
+        }
+
+        private float GetGatherSpeed(ResourceType resourceType)
+        {
+            switch (resourceType)
+            {
+                case ResourceType.Wood:
+                    return GATHER_SPEED * _playerEffects.WorkerWoodGatherSpeedBonus;
+                case ResourceType.Food:
+                    return GATHER_SPEED * _playerEffects.WorkerFoodGatherSpeedBonus;
+                case ResourceType.Gold:
+                    return GATHER_SPEED;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(resourceType), resourceType, null);
+            }
         }
 
         private void GoToStorage()
@@ -118,7 +144,7 @@ namespace SteelCustom.Units
             var closestStorage = GameController.Instance.Map.GetClosestStorage(_onTile, ResourceType);
             if (closestStorage != null)
             {
-                var closestStorageTile = GameController.Instance.Map.GetClosestPassableTileAround(_onTile, closestStorage, false);
+                var closestStorageTile = GameController.Instance.Map.GetClosestPassableTile(_onTile, closestStorage, false);
                 if (closestStorageTile != null)
                 {
                     _targetBuilding = closestStorage;

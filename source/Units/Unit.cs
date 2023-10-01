@@ -18,7 +18,7 @@ namespace SteelCustom.Units
         private int _currentPathTileIndex;
         private Tile _reservedTile;
         protected Tile _onTile;
-        protected ResourceObject _targetResourceObject;
+        protected IResource _targetResource;
         protected ResourceType? _targetResourceObjectType;
         protected Vector2? _targetResourceObjectPosition;
         protected Building _targetBuilding;
@@ -28,9 +28,6 @@ namespace SteelCustom.Units
 
         public override void OnUpdate()
         {
-            if (Input.IsMouseJustPressed(MouseCodes.ButtonLeft) && GameController.Instance.UnitsController.HoveredUnit == this)
-                GameController.Instance.Player.Select(this);
-            
             UpdateMovement();
             UpdateUnit();
         }
@@ -50,6 +47,8 @@ namespace SteelCustom.Units
             _reservedTile = tile;
             _onTile = tile;
             tile.SetOnReservingUnit(this);
+            
+            ReplaceShader();
         }
         
         public virtual void Dispose()
@@ -60,21 +59,31 @@ namespace SteelCustom.Units
 
         public override void OnMouseEnter()
         {
-            GameController.Instance.UnitsController.HoveredUnit = this;
+            if (UI.IsPointerOverUI())
+                return;
+            
+            GameController.Instance.SelectionController.Hovered = this;
+            
+            Log.LogInfo($"Enter {Entity.Transformation.Position} mouse {Camera.Main.ScreenToWorldPoint(Input.MousePosition)}");
+            
+            OverrideColor(new Color(240, 233, 201));
         }
 
         public override void OnMouseExit()
         {
-            GameController.Instance.UnitsController.HoveredUnit = null;
+            if (GameController.Instance.SelectionController.Hovered == this)
+                GameController.Instance.SelectionController.Hovered = null;
+            
+            ResetOverride();
         }
 
-        public void MoveToTarget(Tile tile, ResourceObject resourceObject, Building targetBuilding)
+        public void MoveToTarget(Tile tile, IResource resource, Building targetBuilding)
         {
             if (MoveTo(tile))
             {
-                _targetResourceObject = resourceObject;
-                _targetResourceObjectType = resourceObject?.ResourceType;
-                _targetResourceObjectPosition = resourceObject?.Entity.Transformation.Position;
+                _targetResource = resource;
+                _targetResourceObjectType = resource?.ResourceType;
+                _targetResourceObjectPosition = resource?.Position;
                 _targetBuilding = targetBuilding;
             }
         }

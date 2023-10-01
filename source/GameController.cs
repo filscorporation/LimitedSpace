@@ -17,11 +17,13 @@ namespace SteelCustom
         public static bool SoundOn { get; set; } = true;
         
         public Player Player { get; private set; }
+        public SelectionController SelectionController { get; private set; }
         public Map Map { get; private set; }
         public CameraController CameraController { get; private set; }
-        public UIController UIController { get; private set; }
         public BuilderController BuilderController { get; private set; }
         public UnitsController UnitsController { get; private set; }
+        
+        public UIController UIController { get; private set; }
 
         public GameState GameState { get; private set; }
         
@@ -97,16 +99,17 @@ namespace SteelCustom
             _changeState = true;
         }
 
-        private IEnumerator IntroCoroutine()
+        private void InitGame()
         {
-            GameState = GameState.Intro;
-            Log.LogInfo("Start Intro state");
-
             Player = new Entity("Player").AddComponent<Player>();
+            SelectionController = new Entity("SelectionController").AddComponent<SelectionController>();
             Map = new Entity("Map").AddComponent<Map>();
             CameraController = Camera.Main.Entity.AddComponent<CameraController>();
             BuilderController = new Entity("BuilderController").AddComponent<BuilderController>();
             UnitsController = new Entity("UnitsController").AddComponent<UnitsController>();
+            
+            UIController = new Entity("UI controller").AddComponent<UIController>();
+            UIController.CreateUI();
             
             Player.Init();
             Map.Init();
@@ -115,10 +118,20 @@ namespace SteelCustom
             UnitsController.Init();
             
             Player.InitBuildingsAndResources();
+        }
+
+        private IEnumerator IntroCoroutine()
+        {
+            GameState = GameState.Intro;
+            Log.LogInfo("Start Intro state");
+
+            InitGame();
 
             //yield return new WaitWhile(() => !_startGame);
 
-            //yield return new WaitForSeconds(1.0f);
+            yield return new WaitForSeconds(0.2f);
+
+            Player.InitWorkers();
 
             GameState = GameState.Game;
             _changeState = true;
@@ -154,12 +167,14 @@ namespace SteelCustom
 
             //DialogController.ShowWinDialog();
             
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(1.0f);
+            
+            UIController.Menu.OpenOnWinScreen();
         }
 
         private void UpdateCheats()
         {
-            if (Input.IsKeyJustPressed(KeyCode.Minus)) // +
+            if (Input.IsKeyJustPressed(KeyCode.Minus))
                 Time.TimeScale /= 2;
             if (Input.IsKeyJustPressed(KeyCode.Equal)) // +
                 Time.TimeScale *= 2;
@@ -173,6 +188,12 @@ namespace SteelCustom
                         resourceObject.Destroy();
                 }
             }
+            if (Input.IsKeyJustPressed(KeyCode.B))
+                Player.Resources.Wood += 500;
+            if (Input.IsKeyJustPressed(KeyCode.N))
+                Player.Resources.Food += 500;
+            if (Input.IsKeyJustPressed(KeyCode.M))
+                Player.Resources.Gold += 500;
         }
     }
 }

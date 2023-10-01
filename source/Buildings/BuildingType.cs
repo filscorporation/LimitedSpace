@@ -5,7 +5,9 @@
         TownCenter,
         House,
         Farm,
-        University,
+        LumberMill,
+        Mill,
+        Market,
         Wonder,
     }
 }

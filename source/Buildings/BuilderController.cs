@@ -35,7 +35,7 @@ namespace SteelCustom.Buildings
             building.Init();
             var bottomLeftTile = map.GetBottomLeftTile(position, building.Size.X, building.Size.Y);
             var allTiles = map.GetTiles(position, building.Size.X, building.Size.Y).ToList();
-            building.Place(bottomLeftTile, allTiles);
+            building.Place(bottomLeftTile, allTiles, true);
 
             return building;
         }
@@ -62,6 +62,30 @@ namespace SteelCustom.Buildings
             if (Input.IsKeyJustPressed(KeyCode.D3))
             {
                 TryStartPlacing(BuildingType.TownCenter);
+            }
+            if (Input.IsKeyJustPressed(KeyCode.D4))
+            {
+                TryStartPlacing(BuildingType.LumberMill);
+            }
+            if (Input.IsKeyJustPressed(KeyCode.D5))
+            {
+                TryStartPlacing(BuildingType.Mill);
+            }
+            if (Input.IsKeyJustPressed(KeyCode.D6))
+            {
+                TryStartPlacing(BuildingType.Market);
+            }
+            if (Input.IsKeyJustPressed(KeyCode.D9))
+            {
+                TryStartPlacing(BuildingType.Wonder);
+            }
+            
+            if (Input.IsKeyJustPressed(KeyCode.Delete))
+            {
+                foreach (Building building in GameController.Instance.SelectionController.SelectedObjects.OfType<Building>())
+                {
+                    building.Destroy();
+                }
             }
         }
 
@@ -93,12 +117,39 @@ namespace SteelCustom.Buildings
 
             Vector2 position = Camera.Main.ScreenToWorldPoint(Input.MousePosition);
             _draftBuilding.Transformation.Position = (Vector3)map.GetCenterPosition(position, _draftBuilding.Size.X, _draftBuilding.Size.Y) + new Vector3(0, 0, _draftBuilding.GetZ());
+            
+            _draftBuilding.SetCanPlace(CanPlaceDraft());
         }
 
         private void PlaceDraft()
         {
-            if (_draftBuilding == null)
+            if (!CanPlaceDraft())
                 return;
+            
+            var map = GameController.Instance.Map;
+            
+            Vector2 position = _draftBuilding.Transformation.Position;
+
+            var cost = GetBuildingCost(_draftBuilding.Type);
+            GameController.Instance.Player.Resources.SpendAmount(cost);
+
+            _draftBuilding.SetIsDraft(false);
+            
+            _draftBuilding.Transformation.Position = (Vector3)map.GetCenterPosition(position, _draftBuilding.Size.X, _draftBuilding.Size.Y) + new Vector3(0, 0, _draftBuilding.GetZ());
+            var bottomLeftTile = map.GetBottomLeftTile(position, _draftBuilding.Size.X, _draftBuilding.Size.Y);
+            var allTiles = map.GetTiles(position, _draftBuilding.Size.X, _draftBuilding.Size.Y).ToList();
+            _draftBuilding.Place(bottomLeftTile, allTiles);
+
+            _draftBuilding = null;
+        }
+
+        private bool CanPlaceDraft()
+        {
+            if (_draftBuilding == null)
+                return false;
+
+            if (_draftBuilding.Type == BuildingType.Wonder && !GameController.Instance.Player.IsInAdvancedEra)
+                return false;
             
             var map = GameController.Instance.Map;
             
@@ -106,25 +157,17 @@ namespace SteelCustom.Buildings
             
             var allTiles = map.GetTiles(position, _draftBuilding.Size.X, _draftBuilding.Size.Y).ToList();
             if (allTiles.Any(t => t.IsOccupied))
-                return;
+                return false;
             
             var allTilesHashSet = new HashSet<Tile>(allTiles);
             if (GameController.Instance.UnitsController.Units.Any(u => allTilesHashSet.Contains(u.OnTile)))
-                return;
+                return false;
 
             var cost = GetBuildingCost(_draftBuilding.Type);
             if (!GameController.Instance.Player.Resources.HasAmount(cost))
-                return;
-            
-            GameController.Instance.Player.Resources.SpendAmount(cost);
+                return false;
 
-            _draftBuilding.SetIsDraft(false);
-            
-            _draftBuilding.Transformation.Position = (Vector3)map.GetCenterPosition(position, _draftBuilding.Size.X, _draftBuilding.Size.Y) + new Vector3(0, 0, _draftBuilding.GetZ());
-            var bottomLeftTile = map.GetBottomLeftTile(position, _draftBuilding.Size.X, _draftBuilding.Size.Y);
-            _draftBuilding.Place(bottomLeftTile, allTiles);
-
-            _draftBuilding = null;
+            return true;
         }
 
         private void ClearDraft()
@@ -152,8 +195,14 @@ namespace SteelCustom.Buildings
                 case BuildingType.Farm:
                     building = entity.AddComponent<Farm>();
                     break;
-                case BuildingType.University:
-                    building = entity.AddComponent<University>();
+                case BuildingType.LumberMill:
+                    building = entity.AddComponent<LumberMill>();
+                    break;
+                case BuildingType.Mill:
+                    building = entity.AddComponent<Mill>();
+                    break;
+                case BuildingType.Market:
+                    building = entity.AddComponent<Market>();
                     break;
                 case BuildingType.Wonder:
                     building = entity.AddComponent<Wonder>();
@@ -175,7 +224,11 @@ namespace SteelCustom.Buildings
                     return new ResourceCost(30, 0, 0);
                 case BuildingType.Farm:
                     return new ResourceCost(60, 0, 0);
-                case BuildingType.University:
+                case BuildingType.LumberMill:
+                    return new ResourceCost(100, 0, 0);
+                case BuildingType.Mill:
+                    return new ResourceCost(100, 0, 0);
+                case BuildingType.Market:
                     return new ResourceCost(200, 0, 0);
                 case BuildingType.Wonder:
                     return new ResourceCost(5000, 0, 2000);

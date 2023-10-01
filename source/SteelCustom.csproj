@@ -46,11 +46,23 @@
     <Compile Include="Buildings\BuildingType.cs" />
     <Compile Include="Buildings\Farm.cs" />
     <Compile Include="Buildings\House.cs" />
+    <Compile Include="Buildings\LumberMill.cs" />
+    <Compile Include="Buildings\Market.cs" />
+    <Compile Include="Buildings\Mill.cs" />
     <Compile Include="Buildings\TownCenter.cs" />
-    <Compile Include="Buildings\University.cs" />
     <Compile Include="Buildings\Wonder.cs" />
     <Compile Include="CameraController.cs" />
+    <Compile Include="GameActions\AdvanceGameAction.cs" />
+    <Compile Include="GameActions\BowSawGameAction.cs" />
+    <Compile Include="GameActions\CreateWorkerGameAction.cs" />
+    <Compile Include="GameActions\GameAction.cs" />
+    <Compile Include="GameActions\HeavyPlowGameAction.cs" />
+    <Compile Include="GameActions\NotAvailableReason.cs" />
+    <Compile Include="GameActions\TechnologyGameAction.cs" />
+    <Compile Include="GameActions\TreadmillCraneGameAction.cs" />
+    <Compile Include="GameActions\WheelbarrowGameAction.cs" />
     <Compile Include="GameController.cs" />
+    <Compile Include="IResource.cs" />
     <Compile Include="MapSystem\IMapElement.cs" />
     <Compile Include="MapSystem\Map.cs" />
     <Compile Include="MapSystem\MapObject.cs" />
@@ -59,6 +71,7 @@
     <Compile Include="MapSystem\Tile.cs" />
     <Compile Include="MapSystem\Tree.cs" />
     <Compile Include="PlayerSystem\Player.cs" />
+    <Compile Include="PlayerSystem\PlayerEffects.cs" />
     <Compile Include="PlayerSystem\Resources\PlayerResources.cs" />
     <Compile Include="PlayerSystem\Resources\ResourceCost.cs" />
     <Compile Include="PlayerSystem\Resources\ResourceType.cs" />
@@ -67,12 +80,19 @@
     <Compile Include="PlayerSystem\Upgrades\WheelbarrowUpgrade.cs" />
     <Compile Include="GameState.cs" />
     <Compile Include="SelectableObject.cs" />
+    <Compile Include="SelectionController.cs" />
     <Compile Include="UIElements\UIBuilderController.cs" />
     <Compile Include="UIElements\UIController.cs" />
+    <Compile Include="UIElements\UIGameHUDController.cs" />
+    <Compile Include="UIElements\UIGameTime.cs" />
+    <Compile Include="UIElements\UIMenu.cs" />
+    <Compile Include="UIElements\UIPopulation.cs" />
     <Compile Include="UIElements\UIResourcesController.cs" />
+    <Compile Include="UIElements\UISelectedPanel.cs" />
     <Compile Include="Units\Unit.cs" />
     <Compile Include="Units\UnitsController.cs" />
     <Compile Include="Units\Worker.cs" />
+    <Compile Include="VisualObject.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

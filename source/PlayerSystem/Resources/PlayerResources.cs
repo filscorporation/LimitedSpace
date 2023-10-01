@@ -1,10 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Steel;
 
 namespace SteelCustom.PlayerSystem.Resources
 {
     public class PlayerResources
     {
+        public event Action OnChanged;
+        
         public int Wood
         {
             get => GetAmount(ResourceType.Wood);
@@ -28,8 +31,16 @@ namespace SteelCustom.PlayerSystem.Resources
         public List<(ResourceType ResourceType, int Amount)> GetAll() => new List<(ResourceType ResourceType, int Amount)> { (ResourceType.Wood, Wood), (ResourceType.Food, Food), (ResourceType.Gold, Gold) };
         
         public int GetAmount(ResourceType resourceType) => _data[(int)resourceType];
-        public void SetAmount(ResourceType resourceType, int value) => _data[(int)resourceType] = value;
-        public void AddAmount(ResourceType resourceType, int value) => _data[(int)resourceType] += value;
+        public void SetAmount(ResourceType resourceType, int value)
+        {
+            _data[(int)resourceType] = value;
+            OnChanged?.Invoke();
+        }
+        public void AddAmount(ResourceType resourceType, int value)
+        {
+            _data[(int)resourceType] += value;
+            OnChanged?.Invoke();
+        }
 
         public bool HasAmount(ResourceType resourceType, int amount)
         {

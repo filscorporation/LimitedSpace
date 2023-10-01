@@ -8,7 +8,6 @@ namespace SteelCustom.Units
 {
     public class UnitsController : ScriptComponent
     {
-        public Unit HoveredUnit { get; set; }
         public List<Unit> Units => new List<Unit>(_units);
 
         private List<Unit> _units = new List<Unit>();
@@ -17,14 +16,6 @@ namespace SteelCustom.Units
         {
             if (Input.IsMouseJustPressed(MouseCodes.ButtonRight))
                 TryMoveSelectedUnits();
-
-            if (Input.IsMouseJustPressed(MouseCodes.ButtonLeft))
-            {
-                if (HoveredUnit != null)
-                    GameController.Instance.Player.Select(HoveredUnit);
-                else
-                    GameController.Instance.Player.DeselectAll();
-            }
         }
 
         public void Init()
@@ -41,17 +32,21 @@ namespace SteelCustom.Units
             
             _units.Add(unit);
 
+            GameController.Instance.Player.Population = _units.Count;
+
             return unit;
         }
 
         public void RemoveUnit(Unit unit)
         {
             _units.Remove(unit);
+            
+            GameController.Instance.Player.Population = _units.Count;
         }
 
         private void TryMoveSelectedUnits()
         {
-            foreach (Unit unit in GameController.Instance.Player.SelectedObjects.OfType<Unit>())
+            foreach (Unit unit in GameController.Instance.SelectionController.SelectedObjects.OfType<Unit>())
             {
                 TryMoveUnit(unit);
             }
@@ -62,21 +57,21 @@ namespace SteelCustom.Units
             Map map = GameController.Instance.Map;
             Tile tile = map.GetTileAt(Camera.Main.ScreenToWorldPoint(Input.MousePosition));
             
-            ResourceObject targetResourceObject = null;
+            IResource targetResource = null;
             Building targetBuilding = null;
-            if (tile != null && tile.IsOccupiedAndBlocked)
+            if (tile != null && tile.IsOccupied)
             {
-                if (tile.OnObject is ResourceObject resourceObject)
+                if (tile.OnObject is IResource resource && resource.CanBeGathered)
                 {
-                    tile = map.GetClosestPassableTileAround(unit.OnTile, resourceObject, false);
+                    tile = map.GetClosestPassableTile(unit.OnTile, resource.ToMapObject(), false);
                     if (tile != null)
                     {
-                        targetResourceObject = resourceObject;
+                        targetResource = resource;
                     }
                 }
                 else if (tile.OnObject is Building building && unit is Worker worker && worker.ResourceAmount > 0 && building.IsStorage(worker.ResourceType))
                 {
-                    tile = map.GetClosestPassableTileAround(unit.OnTile, building, false);
+                    tile = map.GetClosestPassableTile(unit.OnTile, building, false);
                     if (tile != null)
                     {
                         targetBuilding = building;
@@ -96,8 +91,26 @@ namespace SteelCustom.Units
             
             if (tile == null)
                 return;
+
+            CreateCommandEffect(tile, targetResource, targetBuilding);
             
-            unit.MoveToTarget(tile, targetResourceObject, targetBuilding);
+            unit.MoveToTarget(tile, targetResource, targetBuilding);
+        }
+
+        private void CreateCommandEffect(Tile tile, IResource resource, Building targetBuilding)
+        {
+            Vector3 position;
+            if (resource != null)
+                position = resource.Position;
+            else if (targetBuilding != null)
+                position = targetBuilding.Transformation.Position;
+            else
+                position = GameController.Instance.Map.CoordsToPosition(tile.X, tile.Y);
+            
+            Entity effect = ResourcesManager.GetAsepriteData("command_effect.aseprite").CreateEntityFromAsepriteData();
+            effect.Transformation.Position = position + new Vector3(0, 0, 1);
+            effect.GetComponent<Animator>().Play("Effect");
+            effect.Destroy(0.7f);
         }
     }
 }

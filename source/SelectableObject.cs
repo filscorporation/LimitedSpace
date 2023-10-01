@@ -1,10 +1,17 @@
-﻿using Steel;
+﻿using System;
+using System.Collections.Generic;
+using SteelCustom.GameActions;
 
 namespace SteelCustom
 {
-    public abstract class SelectableObject : ScriptComponent
+    public abstract class SelectableObject : VisualObject
     {
+        public event Action OnChanged;
+        
         public bool IsSelected { get; private set; }
+        
+        public abstract string Name { get; }
+        public abstract List<GameAction> GameActions { get; }
 
         public void Select()
         {
@@ -21,5 +28,10 @@ namespace SteelCustom
         }
 
         protected virtual void OnSelectedChanged() { }
+
+        protected void CallOnChanged()
+        {
+            OnChanged?.Invoke();
+        }
     }
 }

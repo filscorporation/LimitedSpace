@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using Steel;
 using SteelCustom.Buildings;
 using SteelCustom.MapSystem;
@@ -9,12 +9,44 @@ namespace SteelCustom.PlayerSystem
 {
     public class Player : ScriptComponent
     {
-        public PlayerResources Resources { get; } = new PlayerResources();
-        public TownCenter TownCenter { get; private set; }
-
-        public List<SelectableObject> SelectedObjects => new List<SelectableObject>(_selectedObjects);
+        public event Action OnChanged;
         
-        private readonly List<SelectableObject> _selectedObjects = new List<SelectableObject>();
+        public PlayerResources Resources { get; } = new PlayerResources();
+        public PlayerEffects Effects { get; } = new PlayerEffects();
+        public bool IsInAdvancedEra { get; private set; }
+
+        public int Population
+        {
+            get => _population;
+            set
+            {
+                _population = value;
+                OnChanged?.Invoke();
+            }
+        }
+        
+        public int PopulationSpace
+        {
+            get => _populationSpace;
+            set
+            {
+                _populationSpace = value;
+                OnChanged?.Invoke();
+            }
+        }
+        
+        public bool HasPopulationSpace => Population < PopulationSpace;
+        
+        public double GameTime { get; private set; }
+
+        private TownCenter _townCenter;
+        private int _population;
+        private int _populationSpace;
+
+        public override void OnUpdate()
+        {
+            UpdateTime();
+        }
 
         public void Init()
         {
@@ -23,35 +55,31 @@ namespace SteelCustom.PlayerSystem
 
         public void InitBuildingsAndResources()
         {
-            Resources.Wood = 200;
-            Resources.Food = 300;
-            Resources.Gold = 100;
+            Resources.Wood = 100;
+            Resources.Food = 200;
+            Resources.Gold = 0;
 
             Map map = GameController.Instance.Map;
-            TownCenter = (TownCenter)GameController.Instance.BuilderController.PlaceBuildingInstant(BuildingType.TownCenter, new Vector2(map.Size * 0.5f - 0.5f, map.Size * 0.5f - 0.5f));
-
-            TownCenter.SpawnUnit<Worker>();
-            TownCenter.SpawnUnit<Worker>();
-            TownCenter.SpawnUnit<Worker>();
+            _townCenter = (TownCenter)GameController.Instance.BuilderController.PlaceBuildingInstant(BuildingType.TownCenter, new Vector2(map.Size * 0.5f - 0.5f, map.Size * 0.5f - 0.5f));
         }
 
-        public void Select(SelectableObject selectableObject)
+        public void InitWorkers()
         {
-            foreach (SelectableObject selectedObject in _selectedObjects)
-                selectedObject.Deselect();
-            _selectedObjects.Clear();
-
-            selectableObject.Select();
-            _selectedObjects.Add(selectableObject);
-            
-            Log.LogInfo($"Selected {selectableObject}");
+            _townCenter.SpawnUnit<Worker>();
+            _townCenter.SpawnUnit<Worker>();
+            _townCenter.SpawnUnit<Worker>();
         }
 
-        public void DeselectAll()
+        public void Advance()
         {
-            foreach (SelectableObject selectedObject in _selectedObjects)
-                selectedObject.Deselect();
-            _selectedObjects.Clear();
+            IsInAdvancedEra = true;
+            OnChanged?.Invoke();
+        }
+
+        private void UpdateTime()
+        {
+            if (GameController.Instance.GameState == GameState.Game)
+                GameTime += Time.DeltaTime;
         }
     }
 }

@@ -9,5 +9,7 @@ namespace SteelCustom.MapSystem
         public virtual bool IsBlocking => true;
 
         protected List<Tile> _onTiles = new List<Tile>();
+
+        public List<Tile> OnTiles() => new List<Tile>(_onTiles);
     }
 }
